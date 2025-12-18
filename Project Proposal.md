@@ -14,25 +14,25 @@ The agent starts from a specified initial position and aims to reach a predefine
 
 
 ## Implementation Approach
-**State Representation:**  
+- **State Representation:**  
    Each state is represented by the agent’s current position in the maze as a pair of coordinates: `(row, column)`  
    This representation uniquely identifies the agent’s location within the maze.
 
-**Initial State:**  
+- **Initial State:**  
   The initial state corresponds to the starting position of the agent in the maze, defined by the given start cell.
 
-**Goal State:**  
+- **Goal State:**  
   The goal state is reached when the agent arrives at the target cell specified in the maze.
 
-**Successor Function:**  
+- **Successor Function:**  
   The successor function generates all valid neighboring states by moving the agent one step in the four possible directions `(up, down, left, right)`  
   A successor is considered valid if it lies within the maze boundaries and does not correspond to a blocked cell.
 
-**Cost Function:**  
+- **Cost Function:**  
   Each movement between adjacent cells has a uniform cost of 1.  
   The total path cost is calculated as the sum of the costs of all actions taken from the initial state to the goal state.
 
-**Heuristic Function:**  
+- **Heuristic Function:**  
   The heuristic function used is the Manhattan Distance, which estimates the cost from the current state to the goal state.  
   It is computed as: 
     `h(n) = |x_{current} - x_{goal}| + |y_{current} - y_{goal}|`  
