@@ -43,16 +43,24 @@ The agent starts from a specified initial position and aims to reach a predefine
 
 ### Uninformed Search Algorithms
 - **Breadth-First Search (BFS)**: Explores the maze level by level, guaranteeing the shortest path when all moves have equal cost, but may explore many unnecessary states.
+  
+- **Depth-First Search (DFS)**: Explores the maze by going as deep as possible along one path before backtracking, does not guarantee the shortest path, and may get stuck exploring long or infinite paths.
 
 ### Informed (Heuristic-Based) Search Algorithms
 - **A * Search**: Combines the path cost from the start and a heuristic estimate to efficiently find an optimal path to the goal.
 
 - **Greedy Best-First Search**: Selects the next state based only on the heuristic value, aiming to reach the goal quickly but without guaranteeing optimality.
 
-### Local Search Algorithms
-- **Hill Climbing**: Iteratively moves to the neighbouring state with the best heuristic value, but may get stuck in local optima and does not guarantee reaching the global solution.
-
                       
 
 ## Expected Results
-هنعمل جدول مقارنه بس لما كلنا نخلص
+For a **50 × 50 maze** with multiple obstacles, the expected performance is as follows:
+
+| Algorithm         | Path Length | Nodes Explored  | Optimal |
+| ----------------- | ----------- | --------------  | ------- |
+| BFS               | 99          | 1714            | Yes     |
+| DFS               | 201         | 636             | No      |
+| A*                | 99          | 1039            | Yes     |
+| Gready Best-First | 107         | 206             | No      |  
+
+A* search is expected to outperform uninformed search algorithms by exploring significantly fewer nodes while still producing an optimal path.
