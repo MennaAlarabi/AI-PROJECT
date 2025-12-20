@@ -1,86 +1,63 @@
-import random
 import heapq
-import time
-import sys
+import random
 
-sys.setrecursionlimit(10000)
-
-def initialize_maze(width, height):
-    maze = [['#']*width for _ in range(height)]
+def generate_maze(rows=50, cols=50, wall_prob=0.3, seed=123):
+    """Generate maze with seed for reproducibility"""
+    random.seed(seed)
+    maze = [[0 if random.random() > wall_prob else 1 for _ in range(cols)] for _ in range(rows)]
+    maze[0][0] = 0          
+    maze[rows-1][cols-1] = 0  
     return maze
 
-def carve_passages_from(x, y, maze):
-    directions = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
-    random.shuffle(directions)
-    for (nx, ny) in directions:
-        if nx >= 0 and nx < len(maze[0]) and ny >= 0 and ny < len(maze) and maze[ny][nx] == '#':
-            maze[ny][nx] = ' '
-            carve_passages_from(nx, ny, maze)
+def heuristic(pos, goal):
+    """Manhattan distance heuristic"""
+    return abs(pos[0] - goal[0]) + abs(pos[1] - goal[1])
 
-def heuristic(a, b):
-    return abs(a[0] - b[0]) + abs(a[1] - b[1])
-
-def astar(maze, start, goal):
-    rows = len(maze)
-    cols = len(maze[0])
+def astar_maze(maze):
+    rows, cols = len(maze), len(maze[0])
+    start = (0, 0)
+    goal = (rows-1, cols-1)
+    directions = [(-1,0),(1,0),(0,-1),(0,1)]
     
-    counter = 0
-    open_set = [(0, counter, start, [start])]
-    visited = set()
-    nodes_explored = 0
+    pq = [(heuristic(start, goal), 0, 0, 0, [(0, 0)])]
+    visited = {start: 0}  
     
-    while open_set:
-        _, _, current, path = heapq.heappop(open_set)
+    while pq:
+        f_score, g_score, row, col, path = heapq.heappop(pq)
         
-        if current in visited:
+        if (row, col) == goal:
+            return {
+                "found": True,
+                "path": path,
+                "path_length": len(path),
+                "nodes_explored": len(visited)
+            }
+        
+        if visited.get((row, col), float('inf')) < g_score:
             continue
-            
-        visited.add(current)
-        nodes_explored += 1
         
-        if current == goal:
-            return path, nodes_explored
-        
-        y, x = current
-        for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            ny, nx = y + dy, x + dx
-            neighbor = (ny, nx)
+        for dr, dc in directions:
+            nr, nc = row + dr, col + dc
             
-            if (0 <= ny < rows and 0 <= nx < cols and 
-                maze[ny][nx] == ' ' and neighbor not in visited):
+            if (0 <= nr < rows and 0 <= nc < cols and maze[nr][nc] == 0):
+                new_g_score = g_score + 1
                 
-                new_path = path + [neighbor]
-                g_score = len(new_path)
-                h_score = heuristic(neighbor, goal)
-                f_score = g_score + h_score
-                
-                counter += 1
-                heapq.heappush(open_set, (f_score, counter, neighbor, new_path))
+                if (nr, nc) not in visited or new_g_score < visited[(nr, nc)]:
+                    visited[(nr, nc)] = new_g_score
+                    new_f_score = new_g_score + heuristic((nr, nc), goal)
+                    new_path = path + [(nr, nc)]
+                    heapq.heappush(pq, (new_f_score, new_g_score, nr, nc, new_path))
     
-    return None, nodes_explored
+    return {
+        "found": False,
+        "path": [],
+        "path_length": 0,
+        "nodes_explored": len(visited)
+    }
 
-dynamic_maze = initialize_maze(50, 50)
+maze = generate_maze(rows=50, cols=50, wall_prob=0.25, seed=123)
+result = astar_maze(maze)
 
-carve_passages_from(1, 1, dynamic_maze)
-
-start = (1, 1)
-goal = (48, 48)
-
-dynamic_maze[start[0]][start[1]] = ' '
-dynamic_maze[goal[0]][goal[1]] = ' '
-
-start_time = time.time()
-path, nodes_explored = astar(dynamic_maze, start, goal)
-end_time = time.time()
-
-execution_time = end_time - start_time
-
-if path:
-    print("- Path Found")
-    print(f"- Path Length: {len(path)}")
-else:
-    print("- Path Not Found")
-    print(f"- Path Length: 0")
-
-print(f"- Nodes Explored: {nodes_explored}")
-print(f"- Execution Time: {execution_time:.6f} seconds")
+print("Path Found:", result["found"])
+print("Path Length:", result["path_length"])
+print("Nodes Explored:", result["nodes_explored"])
