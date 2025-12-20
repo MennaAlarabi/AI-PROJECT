@@ -43,13 +43,9 @@ The agent starts from a specified initial position and aims to reach a predefine
 
 ### Uninformed Search Algorithms
 - **Breadth-First Search (BFS)**: Explores the maze level by level, guaranteeing the shortest path when all moves have equal cost, but may explore many unnecessary states.
-  
-![BFS](images/bfsVis.jpeg)
 
 ### Informed (Heuristic-Based) Search Algorithms
 - **A * Search**: Combines the path cost from the start and a heuristic estimate to efficiently find an optimal path to the goal.
-  
-![A* Search](images/astarVis.jpeg)
 
 - **Greedy Best-First Search**: Selects the next state based only on the heuristic value, aiming to reach the goal quickly but without guaranteeing optimality.
 
