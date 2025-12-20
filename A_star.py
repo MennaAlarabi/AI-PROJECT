@@ -1,93 +1,86 @@
+import random
 import heapq
 import time
+import sys
 
-class Node:
-    def __init__(self, row, col, g=float('inf'), h=0, parent=None):
-        self.row, self.col = row, col
-        self.g, self.h = g, h
-        self.f = g + h
-        self.parent = parent
-    
-    def __lt__(self, other): return self.f < other.f
-    def __eq__(self, other): return (self.row, self.col) == (other.row, other.col)
-    def __hash__(self): return hash((self.row, self.col))
+sys.setrecursionlimit(10000)
 
-def manhattan_distance(a, b):
-    return abs(a.row - b.row) + abs(a.col - b.col)
-
-def generate_maze():
-    maze = [[0]*50 for _ in range(50)]
-    for i in range(50):
-        maze[i][0] = maze[i][49] = 1
-        maze[0][i] = maze[49][i] = 1
-
-    for i in range(3, 47, 4):
-        for j in range(2, 48):
-            if j % 8 != 4: maze[i][j] = 1
-    for j in range(4, 46, 6):
-        for i in range(2, 48):
-            if i % 6 != 3: maze[i][j] = 1
-
-    for j in range(1, 49): maze[48][j] = 0
-    for i in range(1, 49): maze[i][48] = 0
+def initialize_maze(width, height):
+    maze = [['#']*width for _ in range(height)]
     return maze
 
-def get_neighbors(node, maze, rows, cols):
-    neighbors = []
-    for dr, dc in [(0,1),(1,0),(0,-1),(-1,0)]:
-        r, c = node.row+dr, node.col+dc
-        if 0 <= r < rows and 0 <= c < cols and maze[r][c]==0:
-            neighbors.append(Node(r,c))
-    return neighbors
+def carve_passages_from(x, y, maze):
+    directions = [(x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)]
+    random.shuffle(directions)
+    for (nx, ny) in directions:
+        if nx >= 0 and nx < len(maze[0]) and ny >= 0 and ny < len(maze) and maze[ny][nx] == '#':
+            maze[ny][nx] = ' '
+            carve_passages_from(nx, ny, maze)
 
-def reconstruct_path(node):
-    path = []
-    while node: 
-        path.append((node.row, node.col))
-        node = node.parent
-    return path[::-1]
+def heuristic(a, b):
+    return abs(a[0] - b[0]) + abs(a[1] - b[1])
 
-def a_star(maze, start_pos, end_pos):
-    start_time = time.time()
-    rows, cols = len(maze), len(maze[0])
-    start = Node(*start_pos, g=0)
-    end = Node(*end_pos)
-    start.h = manhattan_distance(start, end)
-    start.f = start.g + start.h
-
-    open_set, closed_set = [start], set()
-    g_scores = {(start.row, start.col): 0}
+def astar(maze, start, goal):
+    rows = len(maze)
+    cols = len(maze[0])
+    
+    counter = 0
+    open_set = [(0, counter, start, [start])]
+    visited = set()
     nodes_explored = 0
-
+    
     while open_set:
-        current = heapq.heappop(open_set)
-        if (current.row, current.col) in closed_set: continue
-        if current == end:
-            return reconstruct_path(current), nodes_explored, time.time()-start_time
-
-        closed_set.add((current.row, current.col))
+        _, _, current, path = heapq.heappop(open_set)
+        
+        if current in visited:
+            continue
+            
+        visited.add(current)
         nodes_explored += 1
+        
+        if current == goal:
+            return path, nodes_explored
+        
+        y, x = current
+        for dy, dx in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+            ny, nx = y + dy, x + dx
+            neighbor = (ny, nx)
+            
+            if (0 <= ny < rows and 0 <= nx < cols and 
+                maze[ny][nx] == ' ' and neighbor not in visited):
+                
+                new_path = path + [neighbor]
+                g_score = len(new_path)
+                h_score = heuristic(neighbor, goal)
+                f_score = g_score + h_score
+                
+                counter += 1
+                heapq.heappush(open_set, (f_score, counter, neighbor, new_path))
+    
+    return None, nodes_explored
 
-        for neighbor in get_neighbors(current, maze, rows, cols):
-            pos = (neighbor.row, neighbor.col)
-            if pos in closed_set: continue
-            tentative_g = current.g + 1
-            if pos not in g_scores or tentative_g < g_scores[pos]:
-                g_scores[pos] = tentative_g
-                neighbor.g, neighbor.h, neighbor.f = tentative_g, manhattan_distance(neighbor, end), tentative_g + manhattan_distance(neighbor, end)
-                neighbor.parent = current
-                heapq.heappush(open_set, neighbor)
+dynamic_maze = initialize_maze(50, 50)
 
-    return None, nodes_explored, time.time()-start_time
+carve_passages_from(1, 1, dynamic_maze)
 
-def main():
-    ROWS, COLS = 50, 50
-    START, END = (1,1), (ROWS-2, COLS-2)
-    maze = generate_maze()
-    path, explored, exec_time = a_star(maze, START, END)
-    print(f"Path Length: {len(path)-1 if path else 0}")
-    print(f"Nodes Explored: {explored}")
-    print(f"Execution Time: {exec_time:.6f}")
+start = (1, 1)
+goal = (48, 48)
 
-if __name__ == "__main__":
-    main()
+dynamic_maze[start[0]][start[1]] = ' '
+dynamic_maze[goal[0]][goal[1]] = ' '
+
+start_time = time.time()
+path, nodes_explored = astar(dynamic_maze, start, goal)
+end_time = time.time()
+
+execution_time = end_time - start_time
+
+if path:
+    print("- Path Found")
+    print(f"- Path Length: {len(path)}")
+else:
+    print("- Path Not Found")
+    print(f"- Path Length: 0")
+
+print(f"- Nodes Explored: {nodes_explored}")
+print(f"- Execution Time: {execution_time:.6f} seconds")
