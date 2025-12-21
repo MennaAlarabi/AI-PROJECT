@@ -58,7 +58,7 @@ For a **50 × 50 maze** with multiple obstacles, the expected performance is as 
 
 | Algorithm         | Path Length | Nodes Explored  | Optimal |
 | ----------------- | ----------- | --------------  | ------- |
-| BFS               | 99          | 2500            | Yes     |
+| BFS               | 99          | 1714            | Yes     |
 | DFS               | 201         | 636             | No      |
 | A*                | 99          | 1039            | Yes     |
 | Gready Best-First | 107         | 206             | No      |  
