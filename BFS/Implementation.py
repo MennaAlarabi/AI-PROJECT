@@ -1,5 +1,6 @@
 from collections import deque
 import random
+random.seed(5)
 
 def generate_maze(rows=50, cols=50, wall_prob=0.3):
     maze = [[0 if random.random() > wall_prob else 1 for _ in range(cols)] for _ in range(rows)]
