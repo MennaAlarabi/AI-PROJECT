@@ -1,10 +1,11 @@
 from collections import deque
+import random
 
-rows, cols = 50, 50
-maze = [[0 for _ in range(cols)] for _ in range(rows)]
-
-maze[0][0] = 0
-maze[49][49] = 0
+def generate_maze(rows=50, cols=50, wall_prob=0.3):
+    maze = [[0 if random.random() > wall_prob else 1 for _ in range(cols)] for _ in range(rows)]
+    maze[0][0] = 0          # Start
+    maze[rows-1][cols-1] = 0  # Goal
+    return maze
 
 def bfs_maze(maze):
     rows, cols = len(maze), len(maze[0])
@@ -39,6 +40,8 @@ def bfs_maze(maze):
         "nodes_explored": len(visited)
     }
 
+# Example
+maze = generate_maze()
 result = bfs_maze(maze)
 
 print("Path Found:", result["found"])
